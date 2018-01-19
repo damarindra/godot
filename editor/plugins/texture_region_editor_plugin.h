@@ -58,6 +58,7 @@ class TextureRegionEditor : public Control {
 
 	friend class TextureRegionEditorPlugin;
 	friend class TilesetAdvancedEditor;
+	friend class TileSetEditorPlugin;
 	MenuButton *snap_mode_button;
 	TextureRect *icon_zoom;
 	ToolButton *zoom_in;
@@ -77,8 +78,7 @@ class TextureRegionEditor : public Control {
 
 	EditorNode *editor;
 	UndoRedo *undo_redo;
-
-	int tileset_editor_tile_index;
+	TilesetAdvancedEditor *ta_editor;
 
 	Vector2 draw_ofs;
 	float draw_zoom;

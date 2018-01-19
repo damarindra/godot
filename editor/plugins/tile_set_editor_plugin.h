@@ -118,7 +118,7 @@ class TilesetAdvancedEditor : public Control {
 	Map<Vector2, uint16_t> bitmask_map_copy;
 
 	Control *side_panel;
-	ItemList *autotile_list;
+	ItemList *tile_list;
 	PropertyEditor *property_editor;
 	TilesetAdvancedEditorHelper *helper;
 
@@ -130,7 +130,7 @@ protected:
 	virtual void _changed_callback(Object *p_changed, const char *p_prop);
 
 private:
-	void _on_autotile_selected(int p_index);
+	void _on_tile_list_selected(int p_index);
 	void _on_edit_mode_changed(int p_edit_mode);
 	void _on_workspace_draw();
 	void _on_workspace_input(const Ref<InputEvent> &p_ie);
@@ -150,6 +150,8 @@ private:
 	void close_shape(const Vector2 &shape_anchor);
 	void select_coord(const Vector2 &coord);
 	Vector2 snap_point(const Vector2 &point);
+	void update_tile_list();
+	void update_tile_list_icon();
 
 	void edit(Object *p_node);
 	int get_current_tile();

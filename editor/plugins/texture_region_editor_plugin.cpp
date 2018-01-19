@@ -57,8 +57,8 @@ void TextureRegionEditor::_region_draw() {
 		base_tex = obj_styleBox->get_texture();
 	else if (atlas_tex.is_valid())
 		base_tex = atlas_tex->get_atlas();
-	else if (tile_set.is_valid())
-		base_tex = tile_set->tile_get_texture(tileset_editor_tile_index);
+	else if (tile_set.is_valid() && ta_editor->get_current_tile() != -1)
+		base_tex = tile_set->tile_get_texture(ta_editor->get_current_tile());
 	if (base_tex.is_null())
 		return;
 
@@ -283,8 +283,8 @@ void TextureRegionEditor::_region_input(const Ref<InputEvent> &p_input) {
 									r = obj_styleBox->get_region_rect();
 								else if (atlas_tex.is_valid())
 									r = atlas_tex->get_region();
-								else if (tile_set.is_valid())
-									r = tile_set->tile_get_region(tileset_editor_tile_index);
+								else if (tile_set.is_valid() && ta_editor->get_current_tile() != -1)
+									r = tile_set->tile_get_region(ta_editor->get_current_tile());
 								rect.expand_to(r.position);
 								rect.expand_to(r.position + r.size);
 							}
@@ -301,9 +301,9 @@ void TextureRegionEditor::_region_input(const Ref<InputEvent> &p_input) {
 							} else if (atlas_tex.is_valid()) {
 								undo_redo->add_do_method(atlas_tex.ptr(), "set_region", rect);
 								undo_redo->add_undo_method(atlas_tex.ptr(), "set_region", atlas_tex->get_region());
-							} else if (tile_set.is_valid()) {
-								undo_redo->add_do_method(tile_set.ptr(), "tile_set_region", tileset_editor_tile_index, rect);
-								undo_redo->add_undo_method(tile_set.ptr(), "tile_set_region", tileset_editor_tile_index, tile_set->tile_get_region(tileset_editor_tile_index));
+							} else if (tile_set.is_valid() && ta_editor->get_current_tile() != -1) {
+								undo_redo->add_do_method(tile_set.ptr(), "tile_set_region", ta_editor->get_current_tile(), rect);
+								undo_redo->add_undo_method(tile_set.ptr(), "tile_set_region", ta_editor->get_current_tile(), tile_set->tile_get_region(ta_editor->get_current_tile()));
 							}
 							undo_redo->add_do_method(edit_draw, "update");
 							undo_redo->add_undo_method(edit_draw, "update");
@@ -326,8 +326,8 @@ void TextureRegionEditor::_region_input(const Ref<InputEvent> &p_input) {
 						rect_prev = obj_styleBox->get_region_rect();
 					else if (atlas_tex.is_valid())
 						rect_prev = atlas_tex->get_region();
-					else if(tile_set.is_valid())
-						rect_prev = tile_set->tile_get_region(tileset_editor_tile_index);
+					else if(tile_set.is_valid() && ta_editor->get_current_tile() != -1)
+						rect_prev = tile_set->tile_get_region(ta_editor->get_current_tile());
 
 					for (int i = 0; i < 8; i++) {
 						Vector2 tuv = endpoints[i];
@@ -373,8 +373,8 @@ void TextureRegionEditor::_region_input(const Ref<InputEvent> &p_input) {
 						undo_redo->add_undo_method(obj_styleBox.ptr(), "set_region_rect", rect_prev);
 					}
 					else if (tile_set.is_valid()) {
-						undo_redo->add_do_method(tile_set.ptr(), "tile_set_region", tileset_editor_tile_index, tile_set->tile_get_region(tileset_editor_tile_index));
-						undo_redo->add_undo_method(tile_set.ptr(), "tile_set_region", tileset_editor_tile_index, rect_prev);
+						undo_redo->add_do_method(tile_set.ptr(), "tile_set_region", ta_editor->get_current_tile(), tile_set->tile_get_region(ta_editor->get_current_tile()));
+						undo_redo->add_undo_method(tile_set.ptr(), "tile_set_region", ta_editor->get_current_tile(), rect_prev);
 					}
 					drag_index = -1;
 				}
@@ -595,8 +595,8 @@ void TextureRegionEditor::apply_rect(const Rect2 &rect) {
 		obj_styleBox->set_region_rect(rect);
 	else if (atlas_tex.is_valid())
 		atlas_tex->set_region(rect);
-	else if(tile_set.is_valid())
-		tile_set->tile_set_region(tileset_editor_tile_index, rect);
+	else if(tile_set.is_valid() && ta_editor->get_current_tile() != -1)
+		tile_set->tile_set_region(ta_editor->get_current_tile(), rect);
 }
 
 void TextureRegionEditor::_notification(int p_what) {
@@ -689,7 +689,9 @@ void TextureRegionEditor::_edit_region() {
 		texture = obj_styleBox->get_texture();
 	else if (atlas_tex.is_valid())
 		texture = atlas_tex->get_atlas();
-
+	else if (tile_set.is_valid() && ta_editor->get_current_tile() != -1)
+		texture = tile_set->tile_get_texture(ta_editor->get_current_tile());
+	
 	if (texture.is_null()) {
 		return;
 	}
@@ -756,8 +758,8 @@ void TextureRegionEditor::_edit_region() {
 		rect = obj_styleBox->get_region_rect();
 	else if (atlas_tex.is_valid())
 		rect = atlas_tex->get_region();
-	else if (tile_set.is_valid())
-		rect = tile_set->tile_get_region(tileset_editor_tile_index);
+	else if (tile_set.is_valid() && ta_editor->get_current_tile() != -1)
+		rect = tile_set->tile_get_region(ta_editor->get_current_tile());
 
 	edit_draw->update();
 }
