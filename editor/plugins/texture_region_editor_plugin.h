@@ -34,10 +34,12 @@
 #include "canvas_item_editor_plugin.h"
 #include "editor/editor_node.h"
 #include "editor/editor_plugin.h"
+#include "editor/plugins/tile_set_editor_plugin.h"
 #include "scene/2d/sprite.h"
 #include "scene/gui/nine_patch_rect.h"
 #include "scene/resources/style_box.h"
 #include "scene/resources/texture.h"
+#include "scene/resources/tile_set.h"
 
 /**
 	@author Mariano Suligoy
@@ -55,6 +57,7 @@ class TextureRegionEditor : public Control {
 	};
 
 	friend class TextureRegionEditorPlugin;
+	friend class TilesetAdvancedEditor;
 	MenuButton *snap_mode_button;
 	TextureRect *icon_zoom;
 	ToolButton *zoom_in;
@@ -75,6 +78,8 @@ class TextureRegionEditor : public Control {
 	EditorNode *editor;
 	UndoRedo *undo_redo;
 
+	int tileset_editor_tile_index;
+
 	Vector2 draw_ofs;
 	float draw_zoom;
 	bool updating_scroll;
@@ -88,6 +93,7 @@ class TextureRegionEditor : public Control {
 	Sprite *node_sprite;
 	Ref<StyleBoxTexture> obj_styleBox;
 	Ref<AtlasTexture> atlas_tex;
+	Ref<TileSet> tile_set;
 
 	Rect2 rect;
 	Rect2 rect_prev;
@@ -134,7 +140,7 @@ public:
 class TextureRegionEditorPlugin : public EditorPlugin {
 	GDCLASS(TextureRegionEditorPlugin, EditorPlugin);
 
-	Button *region_button;
+	Button *texture_region_button;
 	TextureRegionEditor *region_editor;
 	EditorNode *editor;
 

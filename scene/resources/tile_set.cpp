@@ -375,6 +375,7 @@ void TileSet::tile_set_region(int p_id, const Rect2 &p_region) {
 	ERR_FAIL_COND(!tile_map.has(p_id));
 	tile_map[p_id].region = p_region;
 	emit_changed();
+	_change_notify("texture");
 }
 
 Rect2 TileSet::tile_get_region(int p_id) const {

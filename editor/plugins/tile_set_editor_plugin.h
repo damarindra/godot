@@ -33,16 +33,18 @@
 
 #include "editor/editor_name_dialog.h"
 #include "editor/editor_node.h"
+#include "editor/plugins/texture_region_editor_plugin.h"
 #include "scene/2d/sprite.h"
 #include "scene/resources/convex_polygon_shape_2d.h"
 #include "scene/resources/tile_set.h"
 
-class AutotileEditorHelper;
-class AutotileEditor : public Control {
+class TilesetAdvancedEditorHelper;
+class TilesetAdvancedEditor : public Control {
 
 	friend class TileSetEditorPlugin;
-	friend class AutotileEditorHelper;
-	GDCLASS(AutotileEditor, Control);
+	friend class TilesetAdvancedEditorHelper;
+	friend class TextureRegionEditor;
+	GDCLASS(TilesetAdvancedEditor, Control);
 
 	enum EditMode {
 		EDITMODE_ICON,
@@ -84,6 +86,7 @@ class AutotileEditor : public Control {
 	Ref<NavigationPolygon> edited_navigation_shape;
 
 	EditorNode *editor;
+	TextureRegionEditor *texture_region_editor;
 
 	int current_item_index;
 	Sprite *preview;
@@ -117,9 +120,9 @@ class AutotileEditor : public Control {
 	Control *side_panel;
 	ItemList *autotile_list;
 	PropertyEditor *property_editor;
-	AutotileEditorHelper *helper;
+	TilesetAdvancedEditorHelper *helper;
 
-	AutotileEditor(EditorNode *p_editor);
+	TilesetAdvancedEditor(EditorNode *p_editor);
 
 protected:
 	static void _bind_methods();
@@ -152,13 +155,13 @@ private:
 	int get_current_tile();
 };
 
-class AutotileEditorHelper : public Object {
+class TilesetAdvancedEditorHelper : public Object {
 
-	friend class AutotileEditor;
-	GDCLASS(AutotileEditorHelper, Object);
+	friend class TilesetAdvancedEditor;
+	GDCLASS(TilesetAdvancedEditorHelper, Object);
 
 	Ref<TileSet> tile_set;
-	AutotileEditor *autotile_editor;
+	TilesetAdvancedEditor *ta_editor;
 
 public:
 	void set_tileset(const Ref<TileSet> &p_tileset);
@@ -168,7 +171,7 @@ protected:
 	bool _get(const StringName &p_name, Variant &r_ret) const;
 	void _get_property_list(List<PropertyInfo> *p_list) const;
 
-	AutotileEditorHelper(AutotileEditor *p_autotile_editor);
+	TilesetAdvancedEditorHelper(TilesetAdvancedEditor *p_autotile_editor);
 };
 
 class TileSetEditor : public Control {
@@ -215,10 +218,11 @@ class TileSetEditorPlugin : public EditorPlugin {
 	GDCLASS(TileSetEditorPlugin, EditorPlugin);
 
 	TileSetEditor *tileset_editor;
-	AutotileEditor *autotile_editor;
+	TilesetAdvancedEditor *ta_editor;
 	EditorNode *editor;
 
-	ToolButton *autotile_button;
+	ToolButton *ta_button;
+	ToolButton *texture_region_button;
 
 public:
 	virtual String get_name() const { return "TileSet"; }

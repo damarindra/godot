@@ -270,7 +270,8 @@ void TileSetEditorPlugin::edit(Object *p_node) {
 	if (Object::cast_to<TileSet>(p_node)) {
 		tileset_editor->edit(Object::cast_to<TileSet>(p_node));
 		tileset_editor->show();
-		autotile_editor->edit(p_node);
+		ta_editor->edit(p_node);
+		ta_editor->texture_region_editor->edit(p_node);
 	} else
 		tileset_editor->hide();
 }
@@ -285,17 +286,22 @@ void TileSetEditorPlugin::make_visible(bool p_visible) {
 	if (p_visible) {
 		tileset_editor->show();
 		tileset_editor->menu->show();
-		autotile_button->show();
-		autotile_editor->side_panel->show();
-		if (autotile_button->is_pressed()) {
-			autotile_editor->show();
+		ta_button->show();
+		ta_editor->side_panel->show();
+		if (ta_button->is_pressed()) {
+			ta_editor->show();
 		}
+		texture_region_button->show();
+		if(texture_region_button->is_pressed())
+			ta_editor->texture_region_editor->show();
 	} else {
 		tileset_editor->hide();
 		tileset_editor->menu->hide();
-		autotile_editor->side_panel->hide();
-		autotile_editor->hide();
-		autotile_button->hide();
+		ta_editor->side_panel->hide();
+		ta_editor->hide();
+		ta_button->hide();
+		texture_region_button->hide();
+		ta_editor->texture_region_editor->hide();
 	}
 }
 
@@ -308,16 +314,25 @@ TileSetEditorPlugin::TileSetEditorPlugin(EditorNode *p_node) {
 	tileset_editor->set_end(Point2(0, 22));
 	tileset_editor->hide();
 
-	autotile_editor = memnew(AutotileEditor(p_node));
-	add_control_to_container(CONTAINER_CANVAS_EDITOR_SIDE, autotile_editor->side_panel);
-	autotile_editor->side_panel->set_anchors_and_margins_preset(Control::PRESET_WIDE);
-	autotile_editor->side_panel->set_custom_minimum_size(Size2(200, 0));
-	autotile_editor->side_panel->hide();
-	autotile_button = p_node->add_bottom_panel_item(TTR("Autotiles"), autotile_editor);
-	autotile_button->hide();
+	ta_editor = memnew(TilesetAdvancedEditor(p_node));
+
+	ta_editor->texture_region_editor = memnew(TextureRegionEditor(p_node));
+	texture_region_button = p_node->add_bottom_panel_item(TTR("Texture Region"), ta_editor->texture_region_editor);
+	texture_region_button->set_tooltip(TTR("Texture Region Editor"));
+
+	ta_editor->texture_region_editor->set_custom_minimum_size(Size2(0, 200));
+	ta_editor->texture_region_editor->hide();
+	texture_region_button->hide();
+
+	add_control_to_container(CONTAINER_CANVAS_EDITOR_SIDE, ta_editor->side_panel);
+	ta_editor->side_panel->set_anchors_and_margins_preset(Control::PRESET_WIDE);
+	ta_editor->side_panel->set_custom_minimum_size(Size2(200, 0));
+	ta_editor->side_panel->hide();
+	ta_button = p_node->add_bottom_panel_item(TTR("Autotiles"), ta_editor);
+	ta_button->hide();
 }
 
-AutotileEditor::AutotileEditor(EditorNode *p_editor) {
+TilesetAdvancedEditor::TilesetAdvancedEditor(EditorNode *p_editor) {
 
 	editor = p_editor;
 
@@ -342,7 +357,7 @@ AutotileEditor::AutotileEditor(EditorNode *p_editor) {
 	property_editor->set_custom_minimum_size(Size2(10, 70));
 	split->add_child(property_editor);
 
-	helper = memnew(AutotileEditorHelper(this));
+	helper = memnew(TilesetAdvancedEditorHelper(this));
 	property_editor->call_deferred("edit", helper);
 
 	//Editor
@@ -548,24 +563,24 @@ AutotileEditor::AutotileEditor(EditorNode *p_editor) {
 	preview->set_region(true);
 }
 
-void AutotileEditor::_bind_methods() {
+void TilesetAdvancedEditor::_bind_methods() {
 
-	ClassDB::bind_method("_on_autotile_selected", &AutotileEditor::_on_autotile_selected);
-	ClassDB::bind_method("_on_edit_mode_changed", &AutotileEditor::_on_edit_mode_changed);
-	ClassDB::bind_method("_on_workspace_draw", &AutotileEditor::_on_workspace_draw);
-	ClassDB::bind_method("_on_workspace_input", &AutotileEditor::_on_workspace_input);
-	ClassDB::bind_method("_on_tool_clicked", &AutotileEditor::_on_tool_clicked);
-	ClassDB::bind_method("_on_priority_changed", &AutotileEditor::_on_priority_changed);
-	ClassDB::bind_method("_on_grid_snap_toggled", &AutotileEditor::_on_grid_snap_toggled);
-	ClassDB::bind_method("_set_snap_step_x", &AutotileEditor::_set_snap_step_x);
-	ClassDB::bind_method("_set_snap_step_y", &AutotileEditor::_set_snap_step_y);
-	ClassDB::bind_method("_set_snap_off_x", &AutotileEditor::_set_snap_off_x);
-	ClassDB::bind_method("_set_snap_off_y", &AutotileEditor::_set_snap_off_y);
-	ClassDB::bind_method("_set_snap_sep_x", &AutotileEditor::_set_snap_sep_x);
-	ClassDB::bind_method("_set_snap_sep_y", &AutotileEditor::_set_snap_sep_y);
+	ClassDB::bind_method("_on_autotile_selected", &TilesetAdvancedEditor::_on_autotile_selected);
+	ClassDB::bind_method("_on_edit_mode_changed", &TilesetAdvancedEditor::_on_edit_mode_changed);
+	ClassDB::bind_method("_on_workspace_draw", &TilesetAdvancedEditor::_on_workspace_draw);
+	ClassDB::bind_method("_on_workspace_input", &TilesetAdvancedEditor::_on_workspace_input);
+	ClassDB::bind_method("_on_tool_clicked", &TilesetAdvancedEditor::_on_tool_clicked);
+	ClassDB::bind_method("_on_priority_changed", &TilesetAdvancedEditor::_on_priority_changed);
+	ClassDB::bind_method("_on_grid_snap_toggled", &TilesetAdvancedEditor::_on_grid_snap_toggled);
+	ClassDB::bind_method("_set_snap_step_x", &TilesetAdvancedEditor::_set_snap_step_x);
+	ClassDB::bind_method("_set_snap_step_y", &TilesetAdvancedEditor::_set_snap_step_y);
+	ClassDB::bind_method("_set_snap_off_x", &TilesetAdvancedEditor::_set_snap_off_x);
+	ClassDB::bind_method("_set_snap_off_y", &TilesetAdvancedEditor::_set_snap_off_y);
+	ClassDB::bind_method("_set_snap_sep_x", &TilesetAdvancedEditor::_set_snap_sep_x);
+	ClassDB::bind_method("_set_snap_sep_y", &TilesetAdvancedEditor::_set_snap_sep_y);
 }
 
-void AutotileEditor::_notification(int p_what) {
+void TilesetAdvancedEditor::_notification(int p_what) {
 
 	if (p_what == NOTIFICATION_ENTER_TREE) {
 		tools[TOOL_SELECT]->set_icon(get_icon("ToolSelect", "EditorIcons"));
@@ -582,7 +597,7 @@ void AutotileEditor::_notification(int p_what) {
 	}
 }
 
-void AutotileEditor::_changed_callback(Object *p_changed, const char *p_prop) {
+void TilesetAdvancedEditor::_changed_callback(Object *p_changed, const char *p_prop) {
 	if (p_prop == StringName("texture") || p_prop == StringName("is_autotile")) {
 		edit(tile_set.ptr());
 		autotile_list->update();
@@ -590,7 +605,7 @@ void AutotileEditor::_changed_callback(Object *p_changed, const char *p_prop) {
 	}
 }
 
-void AutotileEditor::_on_autotile_selected(int p_index) {
+void TilesetAdvancedEditor::_on_autotile_selected(int p_index) {
 
 	if (get_current_tile() >= 0) {
 		current_item_index = p_index;
@@ -602,11 +617,12 @@ void AutotileEditor::_on_autotile_selected(int p_index) {
 		preview->set_texture(NULL);
 		workspace->set_custom_minimum_size(Size2i());
 	}
+	texture_region_editor->tileset_editor_tile_index = current_item_index;
 	helper->_change_notify("");
 	workspace->update();
 }
 
-void AutotileEditor::_on_edit_mode_changed(int p_edit_mode) {
+void TilesetAdvancedEditor::_on_edit_mode_changed(int p_edit_mode) {
 
 	edit_mode = (EditMode)p_edit_mode;
 	switch (edit_mode) {
@@ -646,7 +662,7 @@ void AutotileEditor::_on_edit_mode_changed(int p_edit_mode) {
 	workspace->update();
 }
 
-void AutotileEditor::_on_workspace_draw() {
+void TilesetAdvancedEditor::_on_workspace_draw() {
 
 	if (get_current_tile() >= 0 && !tile_set.is_null()) {
 		int spacing = tile_set->autotile_get_spacing(get_current_tile());
@@ -761,7 +777,7 @@ void AutotileEditor::_on_workspace_draw() {
 }
 
 #define MIN_DISTANCE_SQUARED 10
-void AutotileEditor::_on_workspace_input(const Ref<InputEvent> &p_ie) {
+void TilesetAdvancedEditor::_on_workspace_input(const Ref<InputEvent> &p_ie) {
 
 	if (get_current_tile() >= 0 && !tile_set.is_null()) {
 		Ref<InputEventMouseButton> mb = p_ie;
@@ -1108,7 +1124,7 @@ void AutotileEditor::_on_workspace_input(const Ref<InputEvent> &p_ie) {
 	}
 }
 
-void AutotileEditor::_on_tool_clicked(int p_tool) {
+void TilesetAdvancedEditor::_on_tool_clicked(int p_tool) {
 	if (p_tool == BITMASK_COPY) {
 		bitmask_map_copy = tile_set->autotile_get_bitmask_map(get_current_tile());
 	} else if (p_tool == BITMASK_PASTE) {
@@ -1182,12 +1198,12 @@ void AutotileEditor::_on_tool_clicked(int p_tool) {
 	}
 }
 
-void AutotileEditor::_on_priority_changed(float val) {
+void TilesetAdvancedEditor::_on_priority_changed(float val) {
 	tile_set->autotile_set_subtile_priority(get_current_tile(), edited_shape_coord, (int)val);
 	workspace->update();
 }
 
-void AutotileEditor::_on_grid_snap_toggled(bool p_val) {
+void TilesetAdvancedEditor::_on_grid_snap_toggled(bool p_val) {
 	if (p_val)
 		hb_grid->show();
 	else
@@ -1195,36 +1211,36 @@ void AutotileEditor::_on_grid_snap_toggled(bool p_val) {
 	workspace->update();
 }
 
-void AutotileEditor::_set_snap_step_x(float p_val) {
+void TilesetAdvancedEditor::_set_snap_step_x(float p_val) {
 	snap_step.x = p_val;
 	workspace->update();
 }
 
-void AutotileEditor::_set_snap_step_y(float p_val) {
+void TilesetAdvancedEditor::_set_snap_step_y(float p_val) {
 	snap_step.y = p_val;
 	workspace->update();
 }
 
-void AutotileEditor::_set_snap_off_x(float p_val) {
+void TilesetAdvancedEditor::_set_snap_off_x(float p_val) {
 	snap_offset.x = p_val;
 	workspace->update();
 }
 
-void AutotileEditor::_set_snap_off_y(float p_val) {
+void TilesetAdvancedEditor::_set_snap_off_y(float p_val) {
 	snap_offset.y = p_val;
 	workspace->update();
 }
-void AutotileEditor::_set_snap_sep_x(float p_val) {
+void TilesetAdvancedEditor::_set_snap_sep_x(float p_val) {
 	snap_separation.x = p_val;
 	workspace->update();
 }
 
-void AutotileEditor::_set_snap_sep_y(float p_val) {
+void TilesetAdvancedEditor::_set_snap_sep_y(float p_val) {
 	snap_separation.y = p_val;
 	workspace->update();
 }
 
-void AutotileEditor::draw_highlight_tile(Vector2 coord, const Vector<Vector2> &other_highlighted) {
+void TilesetAdvancedEditor::draw_highlight_tile(Vector2 coord, const Vector<Vector2> &other_highlighted) {
 
 	Vector2 size = tile_set->autotile_get_size(get_current_tile());
 	int spacing = tile_set->autotile_get_spacing(get_current_tile());
@@ -1246,7 +1262,7 @@ void AutotileEditor::draw_highlight_tile(Vector2 coord, const Vector<Vector2> &o
 	}
 }
 
-void AutotileEditor::draw_grid_snap() {
+void TilesetAdvancedEditor::draw_grid_snap() {
 	if (tools[SHAPE_GRID_SNAP]->is_pressed()) {
 		Color grid_color = Color(0.39, 0, 1, 0.2f);
 		Size2 s = workspace->get_size();
@@ -1287,7 +1303,7 @@ void AutotileEditor::draw_grid_snap() {
 	}
 }
 
-void AutotileEditor::draw_polygon_shapes() {
+void TilesetAdvancedEditor::draw_polygon_shapes() {
 
 	int t_id = get_current_tile();
 	if (t_id < 0)
@@ -1452,7 +1468,7 @@ void AutotileEditor::draw_polygon_shapes() {
 	}
 }
 
-void AutotileEditor::close_shape(const Vector2 &shape_anchor) {
+void TilesetAdvancedEditor::close_shape(const Vector2 &shape_anchor) {
 
 	creating_shape = false;
 
@@ -1524,7 +1540,7 @@ void AutotileEditor::close_shape(const Vector2 &shape_anchor) {
 	}
 }
 
-void AutotileEditor::select_coord(const Vector2 &coord) {
+void TilesetAdvancedEditor::select_coord(const Vector2 &coord) {
 	int spacing = tile_set->autotile_get_spacing(get_current_tile());
 	Vector2 size = tile_set->autotile_get_size(get_current_tile());
 	Vector2 shape_anchor = coord;
@@ -1557,7 +1573,7 @@ void AutotileEditor::select_coord(const Vector2 &coord) {
 	}
 }
 
-Vector2 AutotileEditor::snap_point(const Vector2 &point) {
+Vector2 TilesetAdvancedEditor::snap_point(const Vector2 &point) {
 	Vector2 p = point;
 	Vector2 coord = edited_shape_coord;
 	Vector2 tile_size = tile_set->autotile_get_size(get_current_tile());
@@ -1583,7 +1599,7 @@ Vector2 AutotileEditor::snap_point(const Vector2 &point) {
 	return p;
 }
 
-void AutotileEditor::edit(Object *p_node) {
+void TilesetAdvancedEditor::edit(Object *p_node) {
 
 	tile_set = Ref<TileSet>(Object::cast_to<TileSet>(p_node));
 	tile_set->add_change_receptor(this);
@@ -1613,7 +1629,7 @@ void AutotileEditor::edit(Object *p_node) {
 	helper->_change_notify("");
 }
 
-int AutotileEditor::get_current_tile() {
+int TilesetAdvancedEditor::get_current_tile() {
 
 	if (autotile_list->get_selected_items().size() == 0)
 		return -1;
@@ -1621,48 +1637,48 @@ int AutotileEditor::get_current_tile() {
 		return autotile_list->get_item_metadata(autotile_list->get_selected_items()[0]);
 }
 
-void AutotileEditorHelper::set_tileset(const Ref<TileSet> &p_tileset) {
+void TilesetAdvancedEditorHelper::set_tileset(const Ref<TileSet> &p_tileset) {
 
 	tile_set = p_tileset;
 }
 
-bool AutotileEditorHelper::_set(const StringName &p_name, const Variant &p_value) {
+bool TilesetAdvancedEditorHelper::_set(const StringName &p_name, const Variant &p_value) {
 
-	if (autotile_editor->get_current_tile() < 0 || tile_set.is_null())
+	if (ta_editor->get_current_tile() < 0 || tile_set.is_null())
 		return false;
 
 	String name = p_name.operator String();
 	bool v = false;
 	if (name == "bitmask_mode") {
-		tile_set->set(String::num(autotile_editor->get_current_tile(), 0) + "/autotile/bitmask_mode", p_value, &v);
+		tile_set->set(String::num(ta_editor->get_current_tile(), 0) + "/autotile/bitmask_mode", p_value, &v);
 	} else if (name.left(7) == "layout/") {
-		tile_set->set(String::num(autotile_editor->get_current_tile(), 0) + "/autotile" + name.right(6), p_value, &v);
+		tile_set->set(String::num(ta_editor->get_current_tile(), 0) + "/autotile" + name.right(6), p_value, &v);
 	}
 	if (v) {
 		tile_set->_change_notify("");
-		autotile_editor->workspace->update();
+		ta_editor->workspace->update();
 	}
 	return v;
 }
 
-bool AutotileEditorHelper::_get(const StringName &p_name, Variant &r_ret) const {
+bool TilesetAdvancedEditorHelper::_get(const StringName &p_name, Variant &r_ret) const {
 
-	if (autotile_editor->get_current_tile() < 0 || tile_set.is_null())
+	if (ta_editor->get_current_tile() < 0 || tile_set.is_null())
 		return false;
 
 	String name = p_name.operator String();
 	bool v = false;
 	if (name == "bitmask_mode") {
-		r_ret = tile_set->get(String::num(autotile_editor->get_current_tile(), 0) + "/autotile/bitmask_mode", &v);
+		r_ret = tile_set->get(String::num(ta_editor->get_current_tile(), 0) + "/autotile/bitmask_mode", &v);
 	} else if (name.left(7) == "layout/") {
-		r_ret = tile_set->get(String::num(autotile_editor->get_current_tile(), 0) + "/autotile" + name.right(6), &v);
+		r_ret = tile_set->get(String::num(ta_editor->get_current_tile(), 0) + "/autotile" + name.right(6), &v);
 	}
 	return v;
 }
 
-void AutotileEditorHelper::_get_property_list(List<PropertyInfo> *p_list) const {
+void TilesetAdvancedEditorHelper::_get_property_list(List<PropertyInfo> *p_list) const {
 
-	if (autotile_editor->get_current_tile() < 0 || tile_set.is_null())
+	if (ta_editor->get_current_tile() < 0 || tile_set.is_null())
 		return;
 
 	p_list->push_back(PropertyInfo(Variant::INT, "bitmask_mode", PROPERTY_HINT_ENUM, "2x2,3x3"));
@@ -1670,7 +1686,7 @@ void AutotileEditorHelper::_get_property_list(List<PropertyInfo> *p_list) const 
 	p_list->push_back(PropertyInfo(Variant::INT, "layout/spacing", PROPERTY_HINT_RANGE, "0,256,1"));
 }
 
-AutotileEditorHelper::AutotileEditorHelper(AutotileEditor *p_autotile_editor) {
+TilesetAdvancedEditorHelper::TilesetAdvancedEditorHelper(TilesetAdvancedEditor *p_autotile_editor) {
 
-	autotile_editor = p_autotile_editor;
+	ta_editor = p_autotile_editor;
 }
