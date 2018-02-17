@@ -73,7 +73,6 @@ public:
 
 	enum TileMode {
 		SINGLE_TILE,
-		SLICED_TILE,
 		AUTO_TILE,
 		ANIMATED_TILE
 	};
@@ -91,6 +90,7 @@ public:
 		// Default size to prevent invalid value
 		explicit AutotileData() :
 				size(64, 64),
+				spacing(0),
 				icon_coord(0, 0) {
 			bitmask_mode = BITMASK_2X2;
 		}

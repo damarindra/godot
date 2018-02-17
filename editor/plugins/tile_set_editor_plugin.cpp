@@ -191,6 +191,7 @@ void TileSetEditor::_name_dialog_confirm(const String &name) {
 
 			if (tileset->has_tile(id)) {
 				tileset->remove_tile(id);
+				update_tile_list();
 			} else {
 				err_dialog->set_text(TTR("Could not find tile:") + " " + name);
 				err_dialog->popup_centered(Size2(300, 60));
@@ -273,13 +274,17 @@ void TileSetEditor::_notification(int p_what)
 
 void TileSetEditor::_changed_callback(Object * p_changed, const char * p_prop)
 {
-	if (p_prop == StringName("texture") || p_prop == StringName("tile_mode") || p_prop == StringName("region") || p_prop == StringName("name")) {
+	if (p_prop == StringName("region")) {
 		update_tile_list_icon();
-		update_workspace_tile_mode();
+	}
+	else if (p_prop == StringName("texture") || p_prop == StringName("tile_mode") || p_prop == StringName("name")) {
+		update_tile_list_icon();
+		_on_tile_list_selected(get_current_tile());
+		//update_workspace_tile_mode();
 		workspace->update();
 		preview->set_texture(tileset->tile_get_texture(get_current_tile()));
 		preview->set_region_rect(tileset->tile_get_region(get_current_tile()));
-		if (tileset->tile_get_tile_mode(get_current_tile()) == TileSet::AUTO_TILE || tileset->tile_get_tile_mode(get_current_tile()) == TileSet::SLICED_TILE)
+		if (tileset->tile_get_tile_mode(get_current_tile()) == TileSet::AUTO_TILE)
 			property_editor->show();
 		else
 			property_editor->hide();
@@ -679,7 +684,7 @@ void TileSetEditor::_on_workspace_draw() {
 			case EDITMODE_COLLISION:
 			case EDITMODE_OCCLUSION:
 			case EDITMODE_NAVIGATION: {
-				if (tileset->tile_get_tile_mode(get_current_tile()) == TileSet::AUTO_TILE || tileset->tile_get_tile_mode(get_current_tile()) == TileSet::SLICED_TILE){
+				if (tileset->tile_get_tile_mode(get_current_tile()) == TileSet::AUTO_TILE){
 					Vector2 coord = edited_shape_coord;
 					draw_highlight_tile(coord);
 				}
@@ -704,7 +709,7 @@ void TileSetEditor::_on_workspace_draw() {
 			} break;
 		}
 
-		if (tileset->tile_get_tile_mode(get_current_tile()) == TileSet::AUTO_TILE || tileset->tile_get_tile_mode(get_current_tile()) == TileSet::SLICED_TILE){
+		if (tileset->tile_get_tile_mode(get_current_tile()) == TileSet::AUTO_TILE){
 			float j = -size.x; //make sure to draw at 0
 			while (j < region.size.x) {
 				j += size.x;
@@ -890,7 +895,7 @@ void TileSetEditor::_on_workspace_input(const Ref<InputEvent> &p_ie) {
 			case EDITMODE_NAVIGATION:
 			case EDITMODE_PRIORITY: {
 				Vector2 shape_anchor = Vector2(0,0);
-				if (tileset->tile_get_tile_mode(get_current_tile()) == TileSet::AUTO_TILE || tileset->tile_get_tile_mode(get_current_tile()) == TileSet::SLICED_TILE){
+				if (tileset->tile_get_tile_mode(get_current_tile()) == TileSet::AUTO_TILE){
 					shape_anchor = edited_shape_coord;
 					shape_anchor.x *= (size.x + spacing);
 					shape_anchor.y *= (size.y + spacing);
@@ -907,7 +912,7 @@ void TileSetEditor::_on_workspace_input(const Ref<InputEvent> &p_ie) {
 									}
 								}
 							}
-							if (tileset->tile_get_tile_mode(get_current_tile()) == TileSet::AUTO_TILE || tileset->tile_get_tile_mode(get_current_tile()) == TileSet::SLICED_TILE) {
+							if (tileset->tile_get_tile_mode(get_current_tile()) == TileSet::AUTO_TILE) {
 								Vector2 coord((int)(mb->get_position().x / (spacing + size.x)), (int)(mb->get_position().y / (spacing + size.y)));
 								if (edited_shape_coord != coord) {
 									edited_shape_coord = coord;
@@ -1045,7 +1050,7 @@ void TileSetEditor::_on_workspace_input(const Ref<InputEvent> &p_ie) {
 										edited_occlusion_shape = Ref<OccluderPolygon2D>();
 										workspace->update();
 									} else if (edit_mode == EDITMODE_NAVIGATION) {
-										if (tileset->tile_get_tile_mode(get_current_tile()) == TileSet::AUTO_TILE || tileset->tile_get_tile_mode(get_current_tile()) == TileSet::SLICED_TILE) {
+										if (tileset->tile_get_tile_mode(get_current_tile()) == TileSet::AUTO_TILE) {
 											Map<Vector2, Ref<NavigationPolygon> > map = tileset->autotile_get_navigation_map(t_id);
 											for (Map<Vector2, Ref<NavigationPolygon> >::Element *E = map.front(); E; E = E->next()) {
 												if (E->key() == edited_shape_coord) {
@@ -1283,7 +1288,7 @@ void TileSetEditor::draw_polygon_shapes() {
 			for (int i = 0; i < sd.size(); i++) {
 				Vector2 coord = Vector2(0,0);
 				Vector2 anchor = Vector2(0, 0);
-				if(tileset->tile_get_tile_mode(get_current_tile()) == TileSet::AUTO_TILE || tileset->tile_get_tile_mode(get_current_tile()) == TileSet::SLICED_TILE){
+				if(tileset->tile_get_tile_mode(get_current_tile()) == TileSet::AUTO_TILE){
 					coord = sd[i].autotile_coord;
 					anchor = tileset->autotile_get_size(t_id);
 					anchor.x += tileset->autotile_get_spacing(t_id);
@@ -1523,7 +1528,7 @@ void TileSetEditor::close_shape(const Vector2 &shape_anchor) {
 
 			shape->set_points(segments);
 
-			if (tileset->tile_get_tile_mode(get_current_tile()) == TileSet::AUTO_TILE || tileset->tile_get_tile_mode(get_current_tile()) == TileSet::SLICED_TILE)
+			if (tileset->tile_get_tile_mode(get_current_tile()) == TileSet::AUTO_TILE)
 				tileset->tile_add_shape(get_current_tile(), shape, Transform2D(), false, edited_shape_coord);
 			else
 				tileset->tile_set_shape(get_current_tile(), 0, shape);
@@ -1547,7 +1552,7 @@ void TileSetEditor::close_shape(const Vector2 &shape_anchor) {
 		w = PoolVector<Vector2>::Write();
 		shape->set_polygon(polygon);
 
-		if(tileset->tile_get_tile_mode(get_current_tile()) == TileSet::AUTO_TILE || tileset->tile_get_tile_mode(get_current_tile()) == TileSet::SLICED_TILE)
+		if(tileset->tile_get_tile_mode(get_current_tile()) == TileSet::AUTO_TILE)
 			tileset->autotile_set_light_occluder(get_current_tile(), shape, edited_shape_coord);
 		else
 			tileset->tile_set_light_occluder(get_current_tile(), shape);
@@ -1571,7 +1576,7 @@ void TileSetEditor::close_shape(const Vector2 &shape_anchor) {
 		shape->set_vertices(polygon);
 		shape->add_polygon(indices);
 
-		if(tileset->tile_get_tile_mode(get_current_tile()) == TileSet::AUTO_TILE || tileset->tile_get_tile_mode(get_current_tile()) == TileSet::SLICED_TILE)
+		if(tileset->tile_get_tile_mode(get_current_tile()) == TileSet::AUTO_TILE)
 			tileset->autotile_set_navigation_polygon(get_current_tile(), shape, edited_shape_coord);
 		else
 			tileset->tile_set_navigation_polygon(get_current_tile(), shape);
@@ -1701,7 +1706,7 @@ void TileSetEditor::update_tile_list() {
 		tile_list->set_item_metadata(tile_list->get_item_count() - 1, E->get());
 		tile_list->set_item_icon(tile_list->get_item_count() - 1, tileset->tile_get_texture(E->get()));
 		Rect2 region = tileset->tile_get_region(E->get());
-		if (tileset->tile_get_tile_mode(E->get()) == TileSet::AUTO_TILE || tileset->tile_get_tile_mode(E->get()) == TileSet::SLICED_TILE) {
+		if (tileset->tile_get_tile_mode(E->get()) == TileSet::AUTO_TILE) {
 			region.size = tileset->autotile_get_size(E->get());
 			Vector2 pos = tileset->autotile_get_icon_coordinate(E->get());
 			pos.x *= (tileset->autotile_get_spacing(E->get()) + region.size.x);
@@ -1724,7 +1729,7 @@ void TileSetEditor::update_tile_list_icon()
 	int current_idx = 0;
 	for (List<int>::Element *E = ids.front(); E; E = E->next()) {
 		Rect2 region = tileset->tile_get_region(E->get());
-		if (tileset->tile_get_tile_mode(E->get()) == TileSet::AUTO_TILE || tileset->tile_get_tile_mode(E->get()) == TileSet::SLICED_TILE) {
+		if (tileset->tile_get_tile_mode(E->get()) == TileSet::AUTO_TILE) {
 			region.size = tileset->autotile_get_size(E->get());
 			Vector2 pos = tileset->autotile_get_icon_coordinate(E->get());
 			pos.x *= (tileset->autotile_get_spacing(E->get()) + region.size.x);
