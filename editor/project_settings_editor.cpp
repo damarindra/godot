@@ -750,7 +750,16 @@ void ProjectSettingsEditor::_item_add() {
 
 	String catname = category->get_text().strip_edges();
 	String propname = property->get_text().strip_edges();
-	String name = catname != "" ? catname + "/" + propname : propname;
+
+	if (propname.empty()) {
+		return;
+	}
+
+	if (catname.empty()) {
+		catname = "global";
+	}
+
+	String name = catname + "/" + propname;
 
 	undo_redo->create_action(TTR("Add Global Property"));
 
@@ -1586,7 +1595,7 @@ ProjectSettingsEditor::ProjectSettingsEditor(EditorData *p_data) {
 	hbc->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	props_base->add_child(hbc);
 
-	search_button = memnew(ToolButton);
+	search_button = memnew(Button);
 	search_button->set_toggle_mode(true);
 	search_button->set_pressed(false);
 	search_button->set_text(TTR("Search"));

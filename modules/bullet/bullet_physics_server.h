@@ -154,7 +154,7 @@ public:
 	/// AREA_PARAM_GRAVITY_VECTOR
 	/// Otherwise you can set area parameters
 	virtual void area_set_param(RID p_area, AreaParameter p_param, const Variant &p_value);
-	virtual Variant area_get_param(RID p_parea, AreaParameter p_param) const;
+	virtual Variant area_get_param(RID p_area, AreaParameter p_param) const;
 
 	virtual void area_set_transform(RID p_area, const Transform &p_transform);
 	virtual Transform area_get_transform(RID p_area) const;
@@ -290,6 +290,9 @@ public:
 	virtual void joint_set_solver_priority(RID p_joint, int p_priority);
 	virtual int joint_get_solver_priority(RID p_joint) const;
 
+	virtual void joint_disable_collisions_between_bodies(RID p_joint, const bool p_disable);
+	virtual bool joint_is_disabled_collisions_between_bodies(RID p_joint) const;
+
 	virtual RID joint_create_pin(RID p_body_A, const Vector3 &p_local_A, RID p_body_B, const Vector3 &p_local_B);
 
 	virtual void pin_joint_set_param(RID p_joint, PinJointParam p_param, float p_value);
@@ -301,7 +304,7 @@ public:
 	virtual void pin_joint_set_local_b(RID p_joint, const Vector3 &p_B);
 	virtual Vector3 pin_joint_get_local_b(RID p_joint) const;
 
-	virtual RID joint_create_hinge(RID p_body_A, const Transform &p_frame_A, RID p_body_B, const Transform &p_frame_B);
+	virtual RID joint_create_hinge(RID p_body_A, const Transform &p_hinge_A, RID p_body_B, const Transform &p_hinge_B);
 	virtual RID joint_create_hinge_simple(RID p_body_A, const Vector3 &p_pivot_A, const Vector3 &p_axis_A, RID p_body_B, const Vector3 &p_pivot_B, const Vector3 &p_axis_B);
 
 	virtual void hinge_joint_set_param(RID p_joint, HingeJointParam p_param, float p_value);

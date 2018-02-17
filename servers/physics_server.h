@@ -118,7 +118,7 @@ public:
 	void set_margin(float p_margin);
 	float get_margin() const;
 
-	void set_collision_mask(int p_collision_layer);
+	void set_collision_mask(int p_collision_mask);
 	int get_collision_mask() const;
 
 	void set_exclude(const Vector<RID> &p_exclude);
@@ -490,6 +490,9 @@ public:
 
 	virtual void joint_set_solver_priority(RID p_joint, int p_priority) = 0;
 	virtual int joint_get_solver_priority(RID p_joint) const = 0;
+
+	virtual void joint_disable_collisions_between_bodies(RID p_joint, const bool p_disable) = 0;
+	virtual bool joint_is_disabled_collisions_between_bodies(RID p_joint) const = 0;
 
 	virtual RID joint_create_pin(RID p_body_A, const Vector3 &p_local_A, RID p_body_B, const Vector3 &p_local_B) = 0;
 

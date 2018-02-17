@@ -12,9 +12,6 @@ def get_name():
 
 def can_build():
 
-    # Doesn't build against Godot 3.0 for now, disable to avoid confusing users
-    return False
-
     if (os.name != "posix" or sys.platform == "darwin"):
         return False
 
@@ -31,6 +28,7 @@ def get_opts():
 def get_flags():
 
     return [
+            ("module_mobile_vr_enabled", False),
     ]
 
 
@@ -67,9 +65,6 @@ def configure(env):
 
     # FIXME: Check for existence of the libs before parsing their flags with pkg-config
 
-    if not env['builtin_openssl']:
-        env.ParseConfig('pkg-config openssl --cflags --libs')
-
     if not env['builtin_libwebp']:
         env.ParseConfig('pkg-config libwebp --cflags --libs')
 
@@ -87,12 +82,12 @@ def configure(env):
         env.ParseConfig('pkg-config libpng --cflags --libs')
 
     if not env['builtin_bullet']:
-        # We need at least version 2.87
+        # We need at least version 2.88
         import subprocess
         bullet_version = subprocess.check_output(['pkg-config', 'bullet', '--modversion']).strip()
-        if bullet_version < "2.87":
+        if bullet_version < "2.88":
             # Abort as system bullet was requested but too old
-            print("Bullet: System version {0} does not match minimal requirements ({1}). Aborting.".format(bullet_version, "2.87"))
+            print("Bullet: System version {0} does not match minimal requirements ({1}). Aborting.".format(bullet_version, "2.88"))
             sys.exit(255)
         env.ParseConfig('pkg-config bullet --cflags --libs')
 
@@ -136,3 +131,4 @@ def configure(env):
     env.Append(CPPPATH=['#platform/server'])
     env.Append(CPPFLAGS=['-DSERVER_ENABLED', '-DUNIX_ENABLED'])
     env.Append(LIBS=['pthread'])
+    env.Append(LIBS=['dl'])

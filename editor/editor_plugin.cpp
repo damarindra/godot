@@ -235,6 +235,14 @@ Control *EditorInterface::get_base_control() {
 	return EditorNode::get_singleton()->get_gui_base();
 }
 
+void EditorInterface::set_plugin_enabled(const String &p_plugin, bool p_enabled) {
+	EditorNode::get_singleton()->set_addon_plugin_enabled(p_plugin, p_enabled);
+}
+
+bool EditorInterface::is_plugin_enabled(const String &p_plugin) const {
+	return EditorNode::get_singleton()->is_addon_plugin_enabled(p_plugin);
+}
+
 Error EditorInterface::save_scene() {
 	if (!get_edited_scene_root())
 		return ERR_CANT_CREATE;
@@ -270,6 +278,9 @@ void EditorInterface::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("make_mesh_previews", "meshes", "preview_size"), &EditorInterface::_make_mesh_previews);
 	ClassDB::bind_method(D_METHOD("select_file", "p_file"), &EditorInterface::select_file);
 	ClassDB::bind_method(D_METHOD("get_selected_path"), &EditorInterface::get_selected_path);
+
+	ClassDB::bind_method(D_METHOD("set_plugin_enabled", "plugin", "enabled"), &EditorInterface::set_plugin_enabled);
+	ClassDB::bind_method(D_METHOD("is_plugin_enabled", "plugin"), &EditorInterface::is_plugin_enabled);
 
 	ClassDB::bind_method(D_METHOD("save_scene"), &EditorInterface::save_scene);
 	ClassDB::bind_method(D_METHOD("save_scene_as", "path", "with_preview"), &EditorInterface::save_scene_as, DEFVAL(true));
@@ -357,6 +368,53 @@ void EditorPlugin::add_control_to_container(CustomControlContainer p_location, C
 		case CONTAINER_PROPERTY_EDITOR_BOTTOM: {
 
 			EditorNode::get_singleton()->get_property_editor_vb()->add_child(p_control);
+
+		} break;
+	}
+}
+
+void EditorPlugin::remove_control_from_container(CustomControlContainer p_location, Control *p_control) {
+
+	switch (p_location) {
+
+		case CONTAINER_TOOLBAR: {
+
+			EditorNode::get_menu_hb()->remove_child(p_control);
+		} break;
+
+		case CONTAINER_SPATIAL_EDITOR_MENU: {
+
+			SpatialEditor::get_singleton()->remove_control_from_menu_panel(p_control);
+
+		} break;
+		case CONTAINER_SPATIAL_EDITOR_SIDE: {
+
+			SpatialEditor::get_singleton()->get_palette_split()->remove_child(p_control);
+
+		} break;
+		case CONTAINER_SPATIAL_EDITOR_BOTTOM: {
+
+			SpatialEditor::get_singleton()->get_shader_split()->remove_child(p_control);
+
+		} break;
+		case CONTAINER_CANVAS_EDITOR_MENU: {
+
+			CanvasItemEditor::get_singleton()->remove_control_from_menu_panel(p_control);
+
+		} break;
+		case CONTAINER_CANVAS_EDITOR_SIDE: {
+
+			CanvasItemEditor::get_singleton()->get_palette_split()->remove_child(p_control);
+
+		} break;
+		case CONTAINER_CANVAS_EDITOR_BOTTOM: {
+
+			CanvasItemEditor::get_singleton()->get_bottom_split()->remove_child(p_control);
+
+		} break;
+		case CONTAINER_PROPERTY_EDITOR_BOTTOM: {
+
+			EditorNode::get_singleton()->get_property_editor_vb()->remove_child(p_control);
 
 		} break;
 	}
@@ -640,6 +698,7 @@ void EditorPlugin::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("add_control_to_dock", "slot", "control"), &EditorPlugin::add_control_to_dock);
 	ClassDB::bind_method(D_METHOD("remove_control_from_docks", "control"), &EditorPlugin::remove_control_from_docks);
 	ClassDB::bind_method(D_METHOD("remove_control_from_bottom_panel", "control"), &EditorPlugin::remove_control_from_bottom_panel);
+	ClassDB::bind_method(D_METHOD("remove_control_from_container", "container", "control"), &EditorPlugin::remove_control_from_container);
 	//ClassDB::bind_method(D_METHOD("add_tool_menu_item", "name", "handler", "callback", "ud"),&EditorPlugin::add_tool_menu_item,DEFVAL(Variant()));
 	ClassDB::bind_method(D_METHOD("add_tool_submenu_item", "name", "submenu"), &EditorPlugin::add_tool_submenu_item);
 	//ClassDB::bind_method(D_METHOD("remove_tool_menu_item", "name"),&EditorPlugin::remove_tool_menu_item);

@@ -318,6 +318,9 @@ void SpatialEditorViewport::_select(Spatial *p_node, bool p_append, bool p_singl
 		editor_selection->clear();
 		editor_selection->add_node(p_node);
 
+		if (Engine::get_singleton()->is_editor_hint())
+			editor->call("edit_node", p_node);
+
 	} else {
 
 		if (editor_selection->is_selected(p_node) && p_single) {
@@ -3827,9 +3830,6 @@ Object *SpatialEditor::_get_editor_data(Object *p_what) {
 	si->sbox_instance = VisualServer::get_singleton()->instance_create2(selection_box->get_rid(), sp->get_world()->get_scenario());
 	VS::get_singleton()->instance_geometry_set_cast_shadows_setting(si->sbox_instance, VS::SHADOW_CASTING_SETTING_OFF);
 
-	if (Engine::get_singleton()->is_editor_hint())
-		editor->call("edit_node", sp);
-
 	return si;
 }
 
@@ -4776,6 +4776,11 @@ void SpatialEditor::_notification(int p_what) {
 void SpatialEditor::add_control_to_menu_panel(Control *p_control) {
 
 	hbc_menu->add_child(p_control);
+}
+
+void SpatialEditor::remove_control_from_menu_panel(Control *p_control) {
+
+	hbc_menu->remove_child(p_control);
 }
 
 void SpatialEditor::set_can_preview(Camera *p_preview) {

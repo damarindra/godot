@@ -148,6 +148,9 @@ void FileAccessWindows::close() {
 		}
 
 		save_path = "";
+		if (rename_error) {
+			ERR_EXPLAIN("Safe save failed. This may be a permissions problem, but also may happen because you are running a paranoid antivirus. If this is the case, please switch to Windows Defender or disable the 'safe save' option in editor settings. This makes it work, but increases the risk of file corruption in a crash.");
+		}
 		ERR_FAIL_COND(rename_error);
 	}
 }
@@ -230,6 +233,11 @@ void FileAccessWindows::store_8(uint8_t p_dest) {
 
 	ERR_FAIL_COND(!f);
 	fwrite(&p_dest, 1, 1, f);
+}
+
+void FileAccessWindows::store_buffer(const uint8_t *p_src, int p_length) {
+	ERR_FAIL_COND(!f);
+	ERR_FAIL_COND(fwrite(p_src, 1, p_length, f) != p_length);
 }
 
 bool FileAccessWindows::file_exists(const String &p_name) {

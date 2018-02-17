@@ -49,12 +49,13 @@ def get_opts():
 
     return [
         BoolVariable('use_llvm', 'Use the LLVM compiler', False),
-        BoolVariable('use_static_cpp', 'Link stdc++ statically', False),
+        BoolVariable('use_static_cpp', 'Link libgcc and libstdc++ statically for better portability', False),
         BoolVariable('use_sanitizer', 'Use LLVM compiler address sanitizer', False),
         BoolVariable('use_leak_sanitizer', 'Use LLVM compiler memory leaks sanitizer (implies use_sanitizer)', False),
         BoolVariable('pulseaudio', 'Detect & use pulseaudio', True),
         BoolVariable('udev', 'Use udev for gamepad connection callbacks', False),
         EnumVariable('debug_symbols', 'Add debug symbols to release version', 'yes', ('yes', 'no', 'full')),
+        BoolVariable('separate_debug_symbols', 'Create a separate file with the debug symbols', False),
         BoolVariable('touch', 'Enable touch events', True),
     ]
 
@@ -64,7 +65,6 @@ def get_flags():
     return [
         ('builtin_freetype', False),
         ('builtin_libpng', False),
-        ('builtin_openssl', False),
         ('builtin_zlib', False),
     ]
 
@@ -152,8 +152,9 @@ def configure(env):
 
     # FIXME: Check for existence of the libs before parsing their flags with pkg-config
 
-    if not env['builtin_openssl']:
-        env.ParseConfig('pkg-config openssl --cflags --libs')
+    if not env['builtin_mbedtls']:
+        # mbedTLS does not provide a pkgconfig config yet. See https://github.com/ARMmbed/mbedtls/issues/228
+        env.Append(LIBS=['mbedtls', 'mbedcrypto', 'mbedx509'])
 
     if not env['builtin_libwebp']:
         env.ParseConfig('pkg-config libwebp --cflags --libs')
@@ -173,12 +174,12 @@ def configure(env):
         env.ParseConfig('pkg-config libpng --cflags --libs')
 
     if not env['builtin_bullet']:
-        # We need at least version 2.87
+        # We need at least version 2.88
         import subprocess
         bullet_version = subprocess.check_output(['pkg-config', 'bullet', '--modversion']).strip()
-        if bullet_version < "2.87":
+        if bullet_version < "2.88":
             # Abort as system bullet was requested but too old
-            print("Bullet: System version {0} does not match minimal requirements ({1}). Aborting.".format(bullet_version, "2.87"))
+            print("Bullet: System version {0} does not match minimal requirements ({1}). Aborting.".format(bullet_version, "2.88"))
             sys.exit(255)
         env.ParseConfig('pkg-config bullet --cflags --libs')
 
@@ -274,6 +275,6 @@ def configure(env):
         env.Append(CPPFLAGS=['-m64'])
         env.Append(LINKFLAGS=['-m64', '-L/usr/lib/i686-linux-gnu'])
 
-
+    # Link those statically for portability
     if env['use_static_cpp']:
-        env.Append(LINKFLAGS=['-static-libstdc++'])
+        env.Append(LINKFLAGS=['-static-libgcc', '-static-libstdc++'])

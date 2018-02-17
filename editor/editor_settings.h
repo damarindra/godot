@@ -95,7 +95,6 @@ private:
 	int last_order;
 
 	Ref<Resource> clipboard;
-	Vector<Ref<Translation> > translations;
 	Map<String, Ref<ShortCut> > shortcuts;
 
 	String resource_path;
@@ -145,7 +144,7 @@ public:
 	bool has_setting(const String &p_setting) const;
 	void erase(const String &p_setting);
 	void raise_order(const String &p_setting);
-	void set_initial_value(const StringName &p_setting, const Variant &p_value, bool update_current = false);
+	void set_initial_value(const StringName &p_setting, const Variant &p_value, bool p_update_current = false);
 	void set_manually(const StringName &p_setting, const Variant &p_value, bool p_emit_signal = false) {
 		if (p_emit_signal)
 			_set(p_setting, p_value);

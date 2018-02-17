@@ -30,6 +30,7 @@
 
 #include "filesystem_dock.h"
 
+#include "core/os/keyboard.h"
 #include "editor_node.h"
 #include "editor_settings.h"
 #include "io/resource_loader.h"
@@ -77,7 +78,7 @@ bool FileSystemDock::_create_tree(TreeItem *p_parent, EditorFileSystemDirectory 
 	return true;
 }
 
-void FileSystemDock::_update_tree(bool keep_collapse_state) {
+void FileSystemDock::_update_tree(bool keep_collapse_state, bool p_uncollapse_root) {
 
 	Vector<String> uncollapsed_paths;
 	if (keep_collapse_state) {
@@ -129,6 +130,10 @@ void FileSystemDock::_update_tree(bool keep_collapse_state) {
 		ti->set_metadata(0, fave);
 	}
 
+	if (p_uncollapse_root) {
+		uncollapsed_paths.push_back("res://");
+	}
+
 	_create_tree(root, EditorFileSystem::get_singleton()->get_filesystem(), uncollapsed_paths);
 	tree->ensure_cursor_is_visible();
 	updating_tree = false;
@@ -154,6 +159,7 @@ void FileSystemDock::_notification(int p_what) {
 				} else {
 
 					tree->set_v_size_flags(SIZE_FILL);
+					button_tree->hide();
 					if (!tree->is_visible()) {
 						tree->show();
 						button_favorite->show();
@@ -163,7 +169,6 @@ void FileSystemDock::_notification(int p_what) {
 
 					if (!file_list_vb->is_visible()) {
 						file_list_vb->show();
-						button_tree->hide();
 						_update_files(true);
 					}
 				}
@@ -204,7 +209,7 @@ void FileSystemDock::_notification(int p_what) {
 			if (EditorFileSystem::get_singleton()->is_scanning()) {
 				_set_scanning_mode();
 			} else {
-				_update_tree(false);
+				_update_tree(false, true);
 			}
 
 		} break;
@@ -488,7 +493,7 @@ void FileSystemDock::_update_files(bool p_keep_selection) {
 		Ref<Texture> folderIcon = (use_thumbnails) ? folder_thumbnail : get_icon("folder", "FileDialog");
 
 		if (path != "res://") {
-			files->add_item("..", folderIcon, false);
+			files->add_item("..", folderIcon, true);
 
 			String bd = path.get_base_dir();
 			if (bd != "res://" && !bd.ends_with("/"))
@@ -1637,6 +1642,23 @@ void FileSystemDock::_file_multi_selected(int p_index, bool p_selected) {
 	call_deferred("_update_import_dock");
 }
 
+void FileSystemDock::_files_gui_input(Ref<InputEvent> p_event) {
+
+	if (get_viewport()->get_modal_stack_top())
+		return; //ignore because of modal window
+
+	Ref<InputEventKey> key = p_event;
+	if (key.is_valid() && key->is_pressed() && !key->is_echo()) {
+		if (ED_IS_SHORTCUT("filesystem_dock/duplicate", p_event)) {
+			_file_option(FILE_DUPLICATE);
+		} else if (ED_IS_SHORTCUT("filesystem_dock/copy_path", p_event)) {
+			_file_option(FILE_COPY_PATH);
+		} else if (ED_IS_SHORTCUT("filesystem_dock/delete", p_event)) {
+			_file_option(FILE_REMOVE);
+		}
+	}
+}
+
 void FileSystemDock::_file_selected() {
 
 	import_dock_needs_update = true;
@@ -1693,6 +1715,7 @@ void FileSystemDock::_update_import_dock() {
 
 void FileSystemDock::_bind_methods() {
 
+	ClassDB::bind_method(D_METHOD("_files_gui_input"), &FileSystemDock::_files_gui_input);
 	ClassDB::bind_method(D_METHOD("_update_tree"), &FileSystemDock::_update_tree);
 	ClassDB::bind_method(D_METHOD("_rescan"), &FileSystemDock::_rescan);
 	ClassDB::bind_method(D_METHOD("_favorites_pressed"), &FileSystemDock::_favorites_pressed);
@@ -1738,6 +1761,10 @@ FileSystemDock::FileSystemDock(EditorNode *p_editor) {
 	set_name("FileSystem");
 	editor = p_editor;
 	path = "res://";
+
+	ED_SHORTCUT("filesystem_dock/copy_path", TTR("Copy Path"), KEY_MASK_CMD | KEY_C);
+	ED_SHORTCUT("filesystem_dock/duplicate", TTR("Duplicate..."), KEY_MASK_CMD | KEY_D);
+	ED_SHORTCUT("filesystem_dock/delete", TTR("Delete"), KEY_DELETE);
 
 	HBoxContainer *toolbar_hbc = memnew(HBoxContainer);
 	add_child(toolbar_hbc);
@@ -1845,6 +1872,7 @@ FileSystemDock::FileSystemDock(EditorNode *p_editor) {
 	files->set_select_mode(ItemList::SELECT_MULTI);
 	files->set_drag_forwarding(this);
 	files->connect("item_rmb_selected", this, "_files_list_rmb_select");
+	files->connect("gui_input", this, "_files_gui_input");
 	files->connect("item_selected", this, "_file_selected");
 	files->connect("multi_selected", this, "_file_multi_selected");
 	files->connect("rmb_clicked", this, "_rmb_pressed");
